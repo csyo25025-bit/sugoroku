@@ -1,74 +1,88 @@
-# sugoroku
+#define _CRT_SECURE_NO_WARNINGS
 #include"DxLib.h"
 #include<stdlib.h>
 
+const int WIDTH = 1200, HEIGHT = 720;
+int cw = 0;
+int pw = 0;
+enum { TITLE, PLAY, OVER, CLEAR };
+enum {NORMAL,GO,BACK,ONEGO,ONEBACK,START,GOAL};
 
-//マス設定
-const int MASS_MAX = 5;
-int imgMass[MASS_MAX];
-const int MASS_W[MASS_MAX] = { 10,10,10,10,10 };
-const int MASS_H[MASS_MAX] = { 10,10,10,10,10 };
+const int ImgMassMax = 7;
+const int KomaMax = 2;
 
+int scene = TITLE;
 
-void drawMass(int x, int y, int type) {
-	DrawGraph(x - MASS_W[type] / 2, y - MASS_H[type] / 2, imgMass[type], TRUE);
+//文字表示
+void drawTextC(int x, int y, const char* txt, int col, int siz) {
+	SetFontSize(siz);
+	int width = GetDrawStringWidth(txt, -1);
+	DrawString(x - width / 2, y, txt, col);
 }
 
 //サイコロ
-void dice(void) {
-	printf("サイコロを振ります");
-	int DICE = rand() % 6 + 1;
-	printf("サイコロの目は・・・%d", DICE);
+void dice(int d) {
+	int m = rand() % 6 + 1;
 }
 
+//じゃんけん
+void janken() {
+	int p=0;
 
+	printf("じゃんけん\n");
+	printf("最初はグーじゃんけん(グー：０、チョキ＝１，パー＝２)>>");
+	//scanf("%d", &p);
+	int c = rand() % 3;
+	if (p == c) {
+		printf("あいこ");
+		printf("もう一度じゃんけんをしてください");
+	}
+	else if ((p == 0 && c == 1) || (p == 1 && c == 2) || (p == 2 && c == 0)) {
+		printf("プレイヤーの勝ち\n");
+		printf("プレイヤーが先攻です\n");
+		pw = 1;
+	}
+	else if ((p == 0 && c == 2) || (p == 1 && c == 0) || (p == 2 && c == 1)) {
+		printf("コンピュータの勝ち\n");
+		printf("あなたは後攻です\n");
+		cw = 1;
+	}
+	else {
+		printf("エラーもう一度じゃんけんをしてください\n");
+	}
+	
+}
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-
-	//タイトル画面
-	const int WIDTH = 720, HEIGHT = 640;
 	SetWindowText("すごろく");
-	SetGraphMode(WIDTH, HEIGHT, 32);
+	SetGraphMode(WIDTH,HEIGHT , 32);
 	ChangeWindowMode(TRUE);
 	if (DxLib_Init() == -1)return -1;
 	SetBackgroundColor(0, 0, 0);
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	//マスの種類
-	imgMass[0] = LoadGraph("IMG_E0321.JPG");
-	imgMass[1] = LoadGraph("IMG_E0322.JPG");
-	imgMass[2] = LoadGraph("IMG_E0323.JPG");
-	imgMass[3] = LoadGraph("IMG_E0324.JPG");
-	imgMass[4] = LoadGraph("IMG_E0325.JPG");
-	imgMass[5] = LoadGraph("IMG_E0326.JPG");
-	imgMass[6] = LoadGraph("IMG_E0327.JPG");
 
-	//コマ
-	imgMass[6] = LoadGraph("IMG_E0328.JPG");
-	imgMass[7] = LoadGraph("IMG_E0329.JPG");
-
-
-	int dx = 0, dy = 0;
-	//プレイヤ―
-	void player() {
-		dx += 20;
-		dice();
-		drawMass(10 + dx, 10, Mass[6]);
-	}
-
-
-	//ゲーム進行に関する変数
-
-	enum { TITLE, PLAY, OVER };
-	int scene = TITLE;
-	int timer = 0;
-	
-	while (1) {
+	while (ProcessMessage()==0&&ClearDrawScreen()==0) {
 		ClearDrawScreen();
-		timer++;
+		ProcessMessage();
+		ScreenFlip();
 
 		switch (scene) {
-		case TITLE://タイトル
-			drawText(160, 160, 0xffffff, "すごろく", 0, 100);
+		case TITLE:
+			drawTextC(WIDTH  /2, HEIGHT * 3/10, "sugoroku", 0xffffff, 80);
+			drawTextC(WIDTH  /2, HEIGHT *7/10, "Press SPACE to start.", 0xffffff, 30);
+			if (CheckHitKey(KEY_INPUT_SPACE)) {
+				scene = PLAY;
+			}
+			break;
+
+		case PLAY:
+			printf("先攻後攻じゃんけん\n");
+			printf("勝った方が先攻\n");
+			//janken();
+			break;
+		}
+		ScreenFlip();
 	}
-	
+	DxLib_End;
+	return 0;
 }
